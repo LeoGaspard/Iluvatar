@@ -24,10 +24,6 @@ public:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
-    void qNormalizeAngle(int &angle);
     void set_background_color(double r, double g, double b);
 
 signals:
@@ -39,19 +35,14 @@ private:
     QMatrix4x4 m_proj;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
-    int m_projMatrixLoc;
-    int m_mvMatrixLoc;
-    int normalMatrixLoc;
-    int m_lightPosLoc;
 
-    int m_xRot, m_yRot, m_zRot;
     float m_scale;
 
-    QPoint m_lastPos;
-
-    std::vector<QOpenGLShaderProgram*> shaders;
-    std::vector<Sphere> spheres;
-    std::vector<Cylinder> cylinders;
+    QVector2D m_lastPos;
+    QQuaternion m_rotation;
+    std::vector<QOpenGLShaderProgram*> m_shaders;
+    std::vector<Sphere> m_spheres;
+    std::vector<Cylinder> m_cylinders;
 public slots:
 };
 

@@ -36,59 +36,81 @@ void MainWindow::on_toolButtonFile_clicked()
     if(std::count(elements.begin(),elements.end(),"C") > 0)
     {
         formula += "C";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"C"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"C") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"C"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"C"),elements.end());
     }
     if(std::count(elements.begin(),elements.end(),"H") > 0)
     {
         formula += "H";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"H"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"H") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"H"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"H"),elements.end());
     }
     if(std::count(elements.begin(),elements.end(),"N") > 0)
     {
         formula += "N";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"N"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"N") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"N"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"N"),elements.end());
     }
     if(std::count(elements.begin(),elements.end(),"O") > 0)
     {
         formula += "O";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"O"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"O") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"O"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"O"),elements.end());
     }
     if(std::count(elements.begin(),elements.end(),"P") > 0)
     {
         formula += "P";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"P"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"P") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"P"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"P"),elements.end());
     }
     if(std::count(elements.begin(),elements.end(),"S") > 0)
     {
         formula += "S";
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),"S"));
-        formula += "</sub>";
+        if(std::count(elements.begin(),elements.end(),"S") > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),"S"));
+            formula += "</sub>";
+        }
         elements.erase(std::remove(elements.begin(),elements.end(),"S"),elements.end());
     }
 
     while(elements.size()>0)
     {
         formula += QString::fromStdString(elements[0]);
-        formula += "<sub>";
-        formula += QString::number(std::count(elements.begin(),elements.end(),elements[0]));
-        formula += "</sub>";
-        elements.erase(std::remove(elements.begin(),elements.end(),elements[0]),elements.end());
+        std::string elem = elements[0];
+        if(std::count(elements.begin(),elements.end(),elem) > 1)
+        {
+            formula += "<sub>";
+            formula += QString::number(std::count(elements.begin(),elements.end(),elem));
+            formula += "</sub>";
+        }
+        elements.erase(std::remove(elements.begin(),elements.end(),elem),elements.end());
     }
 
     this->ui->chemicalFormulaLabel->setText(formula);
