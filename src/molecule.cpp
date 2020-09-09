@@ -419,7 +419,7 @@ void Molecule::find_point_group()
     }
     else
     {
-        if(properRotation.size()==1)
+        if(properRotation.size()==1 && properRotation[0].size() >= 1)
         {
             if(inversion)
             {
