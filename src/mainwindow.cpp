@@ -141,9 +141,14 @@ void MainWindow::on_toolButtonColor_clicked()
     update();
 }
 
+
 void MainWindow::on_toolButtonSymmetrize_clicked()
 {
-    double trsh = QInputDialog::getDouble(this, "Threshold selection", "ok");
+    bool ok;
+    double trsh = QInputDialog::getDouble(this, "Threshold selection", "Threshold in Angström",0.01, 0.0, 1.0, 9, &ok, Qt::WindowFlags(), 0.001);
 
-    std::cout << trsh << std::endl;
+    if(mol != nullptr)
+    {
+        mol->symmetrize(trsh);
+    }
 }
