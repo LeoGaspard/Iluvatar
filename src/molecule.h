@@ -10,7 +10,6 @@
 #include <bits/stdc++.h>
 #include <algorithm>
 
-#define PREC 0.001f
 
 class Atom;
 
@@ -39,11 +38,13 @@ class Molecule
         bool is_improper_rotation_found(unsigned int, Eigen::Vector3f);
         bool is_plane_found(Eigen::Vector3f);
         float get_mass(){return mass;}
+        void symmetrize(float trsh);
         Eigen::Vector3f get_center_of_mass();
         Eigen::Vector3f get_inertia_eigenvec(unsigned int);
         std::string get_point_group();
 
     private :
+        float symPrecision;
         Eigen::Matrix3f 	                            inertiaTensor;
         std::string                                     pointGroup;
         std::vector<Atom>                               atomList;

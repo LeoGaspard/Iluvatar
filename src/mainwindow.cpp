@@ -140,3 +140,10 @@ void MainWindow::on_toolButtonColor_clicked()
     this->ui->glWidget->set_background_color(r,g,b);
     update();
 }
+
+void MainWindow::on_toolButtonSymmetrize_clicked()
+{
+    double trsh = QInputDialog::getDouble(this, "Threshold selection", "ok");
+
+    std::cout << trsh << std::endl;
+}

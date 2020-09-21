@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QColorDialog>
 #include <QColor>
 #include <QLabel>
@@ -28,6 +29,8 @@ private slots:
     void on_toolButtonSymmetry_clicked();
 
     void on_toolButtonColor_clicked();
+
+    void on_toolButtonSymmetrize_clicked();
 
 private:
     Ui::MainWindow *ui;

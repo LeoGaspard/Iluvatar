@@ -4,6 +4,7 @@ Molecule::Molecule()
 {
     inertiaTensor << 0,0,0,0,0,0,0,0,0;
     nAtom = 0;
+    symPrecision=0.001f;
 }
 
 Molecule::~Molecule()
@@ -132,7 +133,7 @@ void Molecule::find_point_group()
                         Eigen::Vector3f n = rA-rB;
                         n.normalize();
 
-                        if(n.norm() > PREC && this->check_plane(n))
+                        if(n.norm() > symPrecision && this->check_plane(n))
                         {
                             if(!this->is_plane_found(n))
                             {
@@ -142,7 +143,7 @@ void Molecule::find_point_group()
 
                         n = rA.cross(rB);
                         n.normalize();
-                        if(n.norm() > PREC && this->check_plane(n))
+                        if(n.norm() > symPrecision && this->check_plane(n))
                         {
                             if(!this->is_plane_found(n))
                             {
@@ -185,7 +186,7 @@ void Molecule::find_point_group()
                         c2b << seaMol->get_atom(b).get_x(), seaMol->get_atom(b).get_y(), seaMol->get_atom(b).get_z();
                         c2m = (c2a+c2b)/2;
 
-                        if(c2a.norm() > PREC && this->check_proper_rotation(2,c2a))
+                        if(c2a.norm() > symPrecision && this->check_proper_rotation(2,c2a))
                         {
                             if(properRotation.size() < 1)
                             {
@@ -196,7 +197,7 @@ void Molecule::find_point_group()
                                 properRotation[0].push_back(c2a.normalized());
                             }
                         }
-                        if(c2b.norm() > PREC && this->check_proper_rotation(2,c2b))
+                        if(c2b.norm() > symPrecision && this->check_proper_rotation(2,c2b))
                         {
                             if(properRotation.size() < 1)
                             {
@@ -207,7 +208,7 @@ void Molecule::find_point_group()
                                 properRotation[0].push_back(c2b.normalized());
                             }
                         }
-                        if(c2m.norm() > PREC && this->check_proper_rotation(2,c2m))
+                        if(c2m.norm() > symPrecision && this->check_proper_rotation(2,c2m))
                         {
                             if(properRotation.size() < 1)
                             {
@@ -222,7 +223,7 @@ void Molecule::find_point_group()
                 }
 
                 // Locating highest order C
-                if(abs(I[0]+I[1]-I[2]) <= PREC)
+                if(abs(I[0]+I[1]-I[2]) <= symPrecision)
                 {
                     // IA + IB = IC
                     nMax = seaMol->get_n_atom();
@@ -311,7 +312,7 @@ void Molecule::find_point_group()
                 }
                 //C2 orthogonal to A-B
                 Eigen::Vector3f trialC2 = (rA+rB)/2;
-                if(trialC2.norm() > PREC && this->check_proper_rotation(2,trialC2.normalized()))
+                if(trialC2.norm() > symPrecision && this->check_proper_rotation(2,trialC2.normalized()))
                 {
                     if(!(this->is_proper_rotation_found(2,trialC2.normalized())))
                     {
@@ -334,7 +335,7 @@ void Molecule::find_point_group()
 
                         Eigen::Vector3f C2 =  rAB.cross(rCD);
 
-                        if(C2.norm() > PREC && this->check_proper_rotation(2,C2.normalized()))
+                        if(C2.norm() > symPrecision && this->check_proper_rotation(2,C2.normalized()))
                         {
                             if(!(this->is_proper_rotation_found(2,C2.normalized())))
                             {
@@ -350,7 +351,7 @@ void Molecule::find_point_group()
     }
     std::sort(IEigenVal,IEigenVal+sizeof(IEigenVal)/sizeof(IEigenVal[0]));
     // Case of spherical symmetry
-    if(abs(IEigenVal[0]-IEigenVal[1]) <= PREC && abs(IEigenVal[1]-IEigenVal[2]) <= PREC)
+    if(abs(IEigenVal[0]-IEigenVal[1]) <= symPrecision && abs(IEigenVal[1]-IEigenVal[2]) <= symPrecision)
     {
         switch(properRotation[0].size())
         {
@@ -406,7 +407,7 @@ void Molecule::find_point_group()
 
         }
     }
-    else if(IEigenVal[0] <= PREC && abs(IEigenVal[1]-IEigenVal[2]) <= PREC)
+    else if(IEigenVal[0] <= symPrecision && abs(IEigenVal[1]-IEigenVal[2]) <= symPrecision)
     {
         if(inversion)
         {
@@ -466,7 +467,7 @@ void Molecule::find_point_group()
             unsigned long n(properRotation.size()+1);
             for(unsigned int i=0; i<properRotation[0].size(); i++)
             {
-                if(abs(properRotation[0][i].dot(properRotation[n-2][0])) <= PREC)
+                if(abs(properRotation[0][i].dot(properRotation[n-2][0])) <= symPrecision)
                 {
                     nC2++;
                 }
@@ -475,11 +476,11 @@ void Molecule::find_point_group()
             bool sigmav = false;
             for(unsigned int i=0;i<planes.size();i++)
             {
-                if(abs(planes[i].dot(properRotation[n-2][0])-1) <= PREC)
+                if(abs(planes[i].dot(properRotation[n-2][0])-1) <= symPrecision)
                 {
                     sigmah = true;
                 }
-                if(abs(planes[i].dot(properRotation[n-2][0])) <= PREC)
+                if(abs(planes[i].dot(properRotation[n-2][0])) <= symPrecision)
                 {
                     sigmav = true;
                 }
@@ -562,6 +563,7 @@ void Molecule::find_point_group()
 void Molecule::compute_SEA()
 {
     std::vector<int> treated;
+    SEA.clear();
 
     for(unsigned int i=0;i<nAtom;i++)
     {
@@ -577,12 +579,19 @@ void Molecule::compute_SEA()
             for(unsigned int j=i+1;j<nAtom;j++)
             {
                 bool seq(true);
-                for(unsigned int k=0;k<nAtom;k++)
+                if(atomList[i].get_type() == atomList[j].get_type())
                 {
-                    if(abs(distanceMatrix[i][k]-distanceMatrix[j][k]) > PREC)
+                    for(unsigned int k=0;k<nAtom;k++)
                     {
-                        seq=false;
+                        if(abs(distanceMatrix[i][k]-distanceMatrix[j][k]) > symPrecision)
+                        {
+                            seq=false;
+                        }
                     }
+                }
+                else
+                {
+                    seq = false;
                 }
                 if(seq)
                 {
@@ -663,7 +672,7 @@ bool Molecule::check_proper_rotation(unsigned int n, Eigen::Vector3f C)
             dx = abs(posMat(i,0)-rotPos(0,j));
             dy = abs(posMat(i,1)-rotPos(1,j));
             dz = abs(posMat(i,2)-rotPos(2,j));
-            if(dx <= PREC && dy <= PREC && dz <= PREC)
+            if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
             {
                 isIn = true;
             }
@@ -733,7 +742,7 @@ void Molecule::check_inversion()
             dx = abs(posMat(i,0)-rotPos(0,j));
             dy = abs(posMat(i,1)-rotPos(1,j));
             dz = abs(posMat(i,2)-rotPos(2,j));
-            if(dx <= PREC && dy <= PREC && dz <= PREC)
+            if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
             {
                 isIn = true;
             }
@@ -776,7 +785,7 @@ bool Molecule::check_plane(Eigen::Vector3f C)
             dx = abs(posMat(i,0)-rotPos(0,j));
             dy = abs(posMat(i,1)-rotPos(1,j));
             dz = abs(posMat(i,2)-rotPos(2,j));
-            if(dx <= PREC && dy <= PREC && dz <= PREC)
+            if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
             {
                 isIn = true;
             }
@@ -796,7 +805,7 @@ bool Molecule::is_proper_rotation_found(unsigned int n, Eigen::Vector3f C)
         float dx = abs(properRotation[n-2][i](0) - C(0));
         float dy = abs(properRotation[n-2][i](1) - C(1));
         float dz = abs(properRotation[n-2][i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -804,7 +813,7 @@ bool Molecule::is_proper_rotation_found(unsigned int n, Eigen::Vector3f C)
         dx = abs(-properRotation[n-2][i](0) - C(0));
         dy = abs(-properRotation[n-2][i](1) - C(1));
         dz = abs(-properRotation[n-2][i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -846,7 +855,7 @@ bool Molecule::check_improper_rotation(unsigned int n, Eigen::Vector3f C)
             dx = abs(posMat(i,0)-rotPos(0,j));
             dy = abs(posMat(i,1)-rotPos(1,j));
             dz = abs(posMat(i,2)-rotPos(2,j));
-            if(dx <= PREC && dy <= PREC && dz <= PREC)
+            if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
             {
                 isIn = true;
             }
@@ -882,7 +891,7 @@ bool Molecule::is_plane_found(Eigen::Vector3f C)
         float dx = abs(planes[i](0) - C(0));
         float dy = abs(planes[i](1) - C(1));
         float dz = abs(planes[i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -890,7 +899,7 @@ bool Molecule::is_plane_found(Eigen::Vector3f C)
         dx = abs(-planes[i](0) - C(0));
         dy = abs(-planes[i](1) - C(1));
         dz = abs(-planes[i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -905,7 +914,7 @@ bool Molecule::is_improper_rotation_found(unsigned int n, Eigen::Vector3f C)
         float dx = abs(improperRotation[n-2][i](0) - C(0));
         float dy = abs(improperRotation[n-2][i](1) - C(1));
         float dz = abs(improperRotation[n-2][i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -913,7 +922,7 @@ bool Molecule::is_improper_rotation_found(unsigned int n, Eigen::Vector3f C)
         dx = abs(-improperRotation[n-2][i](0) - C(0));
         dy = abs(-improperRotation[n-2][i](1) - C(1));
         dz = abs(-improperRotation[n-2][i](2) - C(2));
-        if(dx <= PREC && dy <= PREC && dz <= PREC)
+        if(dx <= symPrecision && dy <= symPrecision && dz <= symPrecision)
         {
             return true;
         }
@@ -999,4 +1008,13 @@ void Molecule::read_from_xyz(std::string fileName)
     {
         std::cout << "Error can't open the file :  " << fileName << std::endl;
     }
+}
+
+void Molecule::symmetrize(float trsh)
+{
+    this->compute_distance_matrix();
+
+    this->compute_SEA();
+    std::cout << "Treshold : " << symPrecision << "Angstrom   nSEA : "  << SEA.size() << std::endl;
+
 }
