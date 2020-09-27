@@ -4,7 +4,7 @@ Molecule::Molecule()
 {
     inertiaTensor << 0,0,0,0,0,0,0,0,0;
     nAtom = 0;
-    symPrecision=0.001f;
+    symPrecision=0.01f;
 }
 
 Molecule::~Molecule()
@@ -565,10 +565,6 @@ void Molecule::compute_SEA()
     std::vector<int> treated;
     SEA.clear();
 
-    for(unsigned int i=0;i<nAtom;i++)
-    {
-        sort(distanceMatrix[i].begin(),distanceMatrix[i].end());
-    }
     for(unsigned int i=0;i<nAtom-1;i++)
     {
         if(std::find(treated.begin(),treated.end(),i)==treated.end())
@@ -583,7 +579,9 @@ void Molecule::compute_SEA()
                 {
                     for(unsigned int k=0;k<nAtom;k++)
                     {
-                        if(abs(distanceMatrix[i][k]-distanceMatrix[j][k]) > symPrecision)
+                        unsigned int a = iDistanceMatrix[i][k];
+                        unsigned int b = iDistanceMatrix[j][k];
+                        if(abs(distanceMatrix[i][a]-distanceMatrix[j][b]) > symPrecision)
                         {
                             seq=false;
                         }
@@ -605,15 +603,25 @@ void Molecule::compute_SEA()
 
 void Molecule::compute_distance_matrix()
 {
+    std::vector<std::vector<float *>> pDistanceMatrix;
+
+    iDistanceMatrix.clear();
     distanceMatrix.clear();
-    distanceMatrix.resize(static_cast<unsigned long>(nAtom));
+
+    distanceMatrix.resize(nAtom);
+    iDistanceMatrix.resize(nAtom);
+    pDistanceMatrix.resize(nAtom);
+
     for(unsigned int i=0;i<nAtom;i++)
     {
-        distanceMatrix[i].resize(static_cast<unsigned long>(nAtom));
+        distanceMatrix[i].resize(nAtom);
+        iDistanceMatrix[i].resize(nAtom);
+        pDistanceMatrix[i].resize(nAtom);
         for(unsigned int j=0;j<nAtom;j++)
         {
             distanceMatrix[i][j]=0;
         }
+        pDistanceMatrix[i][i] = &distanceMatrix[i][i];
     }
     for(unsigned int i=0;i<nAtom-1;i++)
     {
@@ -624,8 +632,21 @@ void Molecule::compute_distance_matrix()
 
             distanceMatrix[i][j] = static_cast<float>(sqrt(pow(static_cast<double>(a.get_x()-b.get_x()),2.0)+pow(static_cast<double>(a.get_y()-b.get_y()),2.0)+pow(static_cast<double>(a.get_z()-b.get_z()),2)));
             distanceMatrix[j][i] = distanceMatrix[i][j];
+
+            pDistanceMatrix[i][j] = &distanceMatrix[i][j];
+            pDistanceMatrix[j][i] = &distanceMatrix[j][i];
+        }
+        sort(pDistanceMatrix[i].begin(),pDistanceMatrix[i].end(), [](float* a, float* b){return *a<*b;});
+    }
+    sort(pDistanceMatrix[nAtom-1].begin(),pDistanceMatrix[nAtom-1].end(), [](float* a, float* b){return *a<*b;});
+    for(unsigned int i=0; i<nAtom; i++)
+    {
+        for(unsigned int j=0; j<nAtom; j++)
+        {
+            iDistanceMatrix[i][j] = std::distance(distanceMatrix[i].begin(), std::find(distanceMatrix[i].begin(),distanceMatrix[i].end(),*pDistanceMatrix[i][j]));
         }
     }
+
 }
 
 unsigned int Molecule::get_n_atom()
@@ -1012,9 +1033,71 @@ void Molecule::read_from_xyz(std::string fileName)
 
 void Molecule::symmetrize(float trsh)
 {
-    this->compute_distance_matrix();
+    std::vector<std::vector<float>> newDistanceMatrix;
 
+    symPrecision = trsh;
     this->compute_SEA();
-    std::cout << "Treshold : " << symPrecision << "Angstrom   nSEA : "  << SEA.size() << std::endl;
+
+    newDistanceMatrix.resize(nAtom);
+    for(unsigned int i=0;i<nAtom;i++)
+    {
+        newDistanceMatrix[i].resize(nAtom,0.0f);
+    }
+
+    for(unsigned int i=0; i<SEA.size();i++)
+    {
+        if(SEA[i].size() > 1)
+        {
+            std::vector<float> averages;
+            averages.resize(SEA[i].size(),0.0f);
+            for(unsigned int j=0; j<SEA[i].size(); j++)
+            {
+                unsigned int a = SEA[i][j];
+                for(unsigned int k=0; k<nAtom; k++)
+                {
+                    unsigned int b = iDistanceMatrix[a][k];
+                    averages[k] += distanceMatrix[a][b];
+                }
+            }
+            for(unsigned int k=0; k<nAtom; k++)
+            {
+                for(unsigned int j=0; j<SEA[i].size();j++)
+                {
+                    unsigned int a = SEA[i][j];
+                    unsigned int b = iDistanceMatrix[a][k];
+                    newDistanceMatrix[a][b] = averages[k]/SEA[i].size();
+                }
+            }
+        }
+        else
+        {
+            for(unsigned int j=0; j<nAtom;j++)
+            {
+                newDistanceMatrix[SEA[i][0]][j] =  distanceMatrix[SEA[i][0]][j];
+            }
+        }
+    }
+
+
+
+    for(int i=0; i<nAtom;i++)
+    {
+        std::cout << atomList[i].get_type() << " " ;
+        for(int j=0; j<nAtom;j++)
+        {
+            std::cout << distanceMatrix[i][j] << " " ;
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    for(int i=0; i<nAtom;i++)
+    {
+        std::cout << atomList[i].get_type() << " " ;
+        for(int j=0; j<nAtom;j++)
+        {
+            std::cout << newDistanceMatrix[i][j] << " " ;
+        }
+        std::cout << std::endl;
+    }
 
 }

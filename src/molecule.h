@@ -49,6 +49,7 @@ class Molecule
         std::string                                     pointGroup;
         std::vector<Atom>                               atomList;
         std::vector<std::vector<float>>                 distanceMatrix;
+        std::vector<std::vector<unsigned int>>          iDistanceMatrix;
         std::vector<std::vector<int>>                   adjacencyMatrix;
         std::vector<std::vector<unsigned int>>                   SEA; // Symmetry Equivalent Atoms
         unsigned int                                    nAtom;
